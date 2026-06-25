@@ -1,13 +1,20 @@
-const mysql = require('mysql2/promise');
+const mysql = require('mysql2');
 
-const pool = mysql.createPool({
-  host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || undefined,
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0
+// Crear la conexión a la base de datos
+const connection = mysql.createConnection({
+  host: '127.0.0.1',
+  user: 'root',
+  password: 'tu_password_secreto', // Cambiala por tu contraseña real
+  database: 'mi_api_db',
+  port: 3306
 });
 
-module.exports = pool;
+connection.connect((err) => {
+  if (err) {
+    console.error('Error conectando a la base de datos: ' + err.stack);
+    return;
+  }
+  console.log('Conectado exitosamente a la base de datos con el ID ' + connection.threadId);
+});
+
+module.exports = connection;
