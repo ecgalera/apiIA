@@ -1,20 +1,15 @@
-const mysql = require('mysql2');
+const mysql = require('mysql2/promise');
 
-// Crear la conexión a la base de datos
-const connection = mysql.createConnection({
+// Crear un pool de conexiones compatible con Promises
+const pool = mysql.createPool({
   host: '127.0.0.1',
   user: 'root',
-  password: 'tu_password_secreto', // Cambiala por tu contraseña real
+  password: 'tu_password_secreto', // Cámbiala por tu contraseña real
   database: 'mi_api_db',
-  port: 3306
+  port: 3306,
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
 });
 
-connection.connect((err) => {
-  if (err) {
-    console.error('Error conectando a la base de datos: ' + err.stack);
-    return;
-  }
-  console.log('Conectado exitosamente a la base de datos con el ID ' + connection.threadId);
-});
-
-module.exports = connection;
+module.exports = pool;
