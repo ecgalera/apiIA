@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - API REST</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #2563eb;
+            --primary-dark: #1e40af;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --border-color: #e5e7eb;
+            --text-color: #1f2937;
+            --bg-light: #f9fafb;
+            --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--text-color);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            padding: 30px 0;
+            margin-bottom: 30px;
+            border-radius: 8px;
+            box-shadow: var(--shadow-lg);
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        header p {
+            color: #6b7280;
+            font-size: 1rem;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .sections {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        @media (min-width: 1024px) {
+            .sections {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .section {
+            background: white;
+            border-radius: 8px;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+        }
+
+        .section-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            padding: 20px;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .section-content {
+            padding: 20px;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 40px 20px;
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid var(--border-color);
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .error {
+            background: #fee2e2;
+            border: 1px solid #fecaca;
+            color: var(--danger-color);
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .error::before {
+            content: "⚠";
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .success {
+            background: #dcfce7;
+            border: 1px solid #bbf7d0;
+            color: var(--success-color);
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #9ca3af;
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        thead {
+            background: var(--bg-light);
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        th {
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-color);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.95rem;
+        }
+
+        tbody tr {
+            transition: background-color 0.2s ease;
+        }
+
+        tbody tr:nth-child(odd) {
+            background: #fafafa;
+        }
+
+        tbody tr:nth-child(even) {
+            background: white;
+        }
+
+        tbody tr:hover {
+            background: var(--bg-light);
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 30px;
+            color: #9ca3af;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.8rem;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            table {
+                font-size: 0.85rem;
+            }
+
+            th,
+            td {
+                padding: 8px 10px;
+            }
+
+            .section-header {
+                font-size: 1.2rem;
+            }
+        }
+
+        footer {
+            text-align: center;
+            color: white;
+            padding: 20px;
+            font-size: 0.9rem;
+        }
+
+        .timestamp {
+            color: #9ca3af;
+            font-size: 0.85rem;
+            margin-top: 15px;
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 Dashboard</h1>
+            <p>Datos en tiempo real desde la API REST</p>
+            <div class="controls">
+                <button class="btn btn-primary" id="refreshBtn">
+                    <span>🔄</span> Refrescar Datos
+                </button>
+            </div>
+        </header>
+
+        <div class="sections">
+            <!-- Sección Usuarios -->
+            <div class="section">
+                <div class="section-header">👥 Usuarios</div>
+                <div class="section-content">
+                    <div id="usuariosContainer">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            Cargando usuarios...
+                        </div>
+                    </div>
+                    <div class="timestamp" id="usuariosTimestamp"></div>
+                </div>
+            </div>
+
+            <!-- Sección Productos -->
+            <div class="section">
+                <div class="section-header">📦 Productos</div>
+                <div class="section-content">
+                    <div id="productosContainer">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            Cargando productos...
+                        </div>
+                    </div>
+                    <div class="timestamp" id="productosTimestamp"></div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>&copy; 2024 Dashboard API REST. Actualizado automáticamente.</p>
+        </footer>
+    </div>
+
+    <script>
+        // ============================================
+        // CONFIGURACIÓN
+        // ============================================
+        const API_BASE_URL = 'http://localhost:3000/api'; // Cambia esto según tu configuración
+
+        // ============================================
+        // ELEMENTOS DEL DOM
+        // ============================================
+        const usuariosContainer = document.getElementById('usuariosContainer');
+        const productosContainer = document.getElementById('productosContainer');
+        const refreshBtn = document.getElementById('refreshBtn');
+        const usuariosTimestamp = document.getElementById('usuariosTimestamp');
+        const productosTimestamp = document.getElementById('productosTimestamp');
+
+        // ============================================
+        // FUNCIONES AUXILIARES
+        // ============================================
+
+        /**
+         * Formatea una fecha ISO a formato legible
+         */
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleString('es-ES', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+        }
+
+        /**
+         * Obtiene la hora actual formateada
+         */
+        function getCurrentTime() {
+            const now = new Date();
+            return `Última actualización: ${now.toLocaleString('es-ES')}`;
+        }
+
+        /**
+         * Crea un elemento de error
+         */
+        function createErrorElement(message) {
+            const div = document.createElement('div');
+            div.className = 'error';
+            div.textContent = message;
+            return div;
+        }
+
+        /**
+         * Crea un elemento de estado vacío
+         */
+        function createEmptyState(icon, message) {
+            const div = document.createElement('div');
+            div.className = 'empty-state';
+            div.innerHTML = `
+                <div class="empty-state-icon">${icon}</div>
+                <p>${message}</p>
+            `;
+            return div;
+        }
+
+        /**
+         * Crea una tabla a partir de datos
+         */
+        function createTable(data, columns) {
+            if (!data || data.length === 0) {
+                return createEmptyState('📭', 'No hay datos disponibles');
+            }
+
+            const table = document.createElement('table');
+            
+            // Crear encabezado
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+            columns.forEach(col => {
+                const th = document.createElement('th');
+                th.textContent = col.label;
+                headerRow.appendChild(th);
+            });
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+
+            // Crear cuerpo
+            const tbody = document.createElement('tbody');
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+                columns.forEach(col => {
+                    const td = document.createElement('td');
+                    const value = row[col.key];
+                    
+                    // Formatear fechas si es necesario
+                    if (col.key.includes('_at') && value) {
+                        td.textContent = formatDate(value);
+                    } else if (col.key === 'precio' && typeof value === 'number') {
+                        td.textContent = `$${value.toFixed(2)}`;
+                    } else {
+                        td.textContent = value || '-';
+                    }
+                    
+                    tr.appendChild(td);
+                });
+                tbody.appendChild(tr);
+            });
+            table.appendChild(tbody);
+
+            return table;
+        }
+
+        // ============================================
+        // FUNCIONES DE FETCH
+        // ============================================
+
+        /**
+         * Obtiene datos de un endpoint
+         */
+        async function fetchData(endpoint) {
+            try {
+                const response = await fetch(`${API_BASE_URL}${endpoint}`);
+                
+                if (!response.ok) {
+                    throw new Error(`Error ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                return { success: true, data };
+            } catch (error) {
+                return { success: false, error: error.message };
+            }
+        }
+
+        /**
+         * Carga y renderiza usuarios
+         */
+        async function loadUsuarios() {
+            usuariosContainer.innerHTML = '<div class="loading"><div class="spinner"></div>Cargando usuarios...</div>';
+            
+            const result = await fetchData('/usuarios');
+            
+            if (result.success) {
+                usuariosContainer.innerHTML = '';
+                const columns = [
+                    { key: 'id', label: 'ID' },
+                    { key: 'nombre', label: 'Nombre' },
+                    { key: 'email', label: 'Email' },
+                    { key: 'created_at', label: 'Creado' }
+                ];
+                const table = createTable(result.data, columns);
+                usuariosContainer.appendChild(table);
+                usuariosTimestamp.textContent = getCurrentTime();
+            } else {
+                usuariosContainer.innerHTML = '';
+                usuariosContainer.appendChild(createErrorElement(`Error al cargar usuarios: ${result.error}`));
+            }
+        }
+
+        /**
+         * Carga y renderiza productos
+         */
+        async function loadProductos() {
+            productosContainer.innerHTML = '<div class="loading"><div class="spinner"></div>Cargando productos...</div>';
+            
+            const result = await fetchData('/productos');
+            
+            if (result.success) {
+                productosContainer.innerHTML = '';
+                const columns = [
+                    { key: 'id', label: 'ID' },
+                    { key: 'nombre', label: 'Nombre' },
+                    { key: 'precio', label: 'Precio' },
+                    { key: 'created_at', label: 'Creado' }
+                ];
+                const table = createTable(result.data, columns);
+                productosContainer.appendChild(table);
+                productosTimestamp.textContent = getCurrentTime();
+            } else {
+                productosContainer.innerHTML = '';
+                productosContainer.appendChild(createErrorElement(`Error al cargar productos: ${result.error}`));
+            }
+        }
+
+        /**
+         * Carga ambos datasets
+         */
+        async function loadAllData() {
+            refreshBtn.disabled = true;
+            await Promise.all([loadUsuarios(), loadProductos()]);
+            refreshBtn.disabled = false;
+        }
+
+        // ============================================
+        // EVENT LISTENERS
+        // ============================================
+        refreshBtn.addEventListener('click', loadAllData);
+
+        // ============================================
+        // INICIALIZACIÓN
+        // ============================================
+        document.addEventListener('DOMContentLoaded', () => {
+            loadAllData();
+        });
+    </script>
+</body>
+</html>
